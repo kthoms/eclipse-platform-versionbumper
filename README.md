@@ -2,6 +2,9 @@
 
 A tool to provide version bump changes to Eclipse Gerrit for Eclipse Platform changes.
 
+[![](https://github.com/kthoms/eclipse-platform-versionbumper/workflows/maven.yml/badge.svg)](https://github.com/kthoms/eclipse-platform-versionbumper/workflows/actions)
+
+
 ## Context
 
 The Eclipse Platform Project follows a strict semantic versioning concept for all bundles contributed to its core projects.
