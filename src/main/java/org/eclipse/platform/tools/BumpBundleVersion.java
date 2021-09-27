@@ -94,7 +94,7 @@ public class BumpBundleVersion {
 			new CommandLine(instance).parseArgs(args);
 			instance.run();
 		} catch (PicocliException ex) {
-			System.err.println(ex.getMessage());
+			LOG.error(ex.getMessage());
 		}
 	}
 
@@ -103,7 +103,7 @@ public class BumpBundleVersion {
 
 		if (changeIds.isEmpty()) {
 			if (console == null) {
-				System.err.println("No system console available. Please add change ids as program argument.");
+				LOG.error("No system console available. Please add change ids as program argument.");
 				return;
 			}
 			System.out.print("Please enter the change ids to process (space separated): ");
@@ -111,7 +111,6 @@ public class BumpBundleVersion {
 			changeIds.addAll(Arrays.asList(input.split("\\s+")));
 		}
 		try {
-			System.out.println("Connecting...");
 			connect();
 
 			for (var id : changeIds) {
@@ -130,7 +129,7 @@ public class BumpBundleVersion {
 				boolean anyBumped = fetchVersionBumps(bundleInfos);
 
 				if (bundleInfos.isEmpty() || !anyBumped) {
-					System.out.println("Versions are up-to-date, no change is created");
+					LOG.info("Versions are up-to-date, no change is created");
 				} else {
 					createChange(git, change, bundleInfos, eclipseVersion);
 					var changeId = pushChange(git, change);
@@ -150,7 +149,7 @@ public class BumpBundleVersion {
 	private Git getGit(ChangeApi change) throws Exception {
 		File repoDir = getRepoDir(change.info().project);
 		try {
-			System.out.println("Repository exists at " + repoDir.getPath());
+			LOG.info("Repository exists at " + repoDir.getPath());
 			Git git = Git.open(repoDir);
 			Status status = git.status().call();
 			if (!status.isClean()) {
@@ -161,20 +160,20 @@ public class BumpBundleVersion {
 				git.reset().setMode(ResetType.HARD).call();
 			}
 			var branch = git.getRepository().getBranch();
-			System.out.println("On branch " + branch);
+			LOG.info("Repository {} is on branch {}", repoDir.getPath(), branch);
 
 			if (!"master".equals(branch)) {
-				System.out.println("Switching to master");
+				LOG.info("Switching to master");
 				git.checkout().setName("master").call();
 			}
 
-			System.out.println("Pulling changes...");
+			LOG.info("Pulling changes...");
 			git.pull().setCredentialsProvider(credentialsProvider).call();
 
 			return git;
 		} catch (RepositoryNotFoundException e) {
 			var cloneUri = getGitCloneUri(change);
-			System.out.println("Cloning " + cloneUri + " to " + repoDir.getPath());
+			LOG.info("Cloning " + cloneUri + " to " + repoDir.getPath());
 			Git git = Git.cloneRepository().setCredentialsProvider(credentialsProvider).setURI(cloneUri)
 					.setDirectory(repoDir).call();
 			// install hook for Gerrit Change Id
@@ -194,6 +193,8 @@ public class BumpBundleVersion {
 	}
 
 	void connect() {
+		LOG.info("Connecting to Eclipse Gerrit");
+		
 		GerritRestApiFactory gerritRestApiFactory = new GerritRestApiFactory();
 		GerritAuthData.Basic authData = new GerritAuthData.Basic(serverUri, user, password);
 		gerritApi = gerritRestApiFactory.create(authData);
@@ -202,9 +203,9 @@ public class BumpBundleVersion {
 	}
 
 	ChangeApi getChange(String id) throws RestApiException {
-		System.out.println("Get change " + id + "...");
+		LOG.info("Get change " + id + "...");
 		var change = gerritApi.changes().id(id);
-		System.out.println("Change is for project " + change.info().project);
+		LOG.info("  This change is for project " + change.info().project);
 		return change;
 	}
 
@@ -212,7 +213,7 @@ public class BumpBundleVersion {
 		var bundles = new LinkedHashSet<BundleInfo>();
 		RevisionApi revision = change.current();
 
-		System.out.println("This change affects the following bundles:");
+		LOG.info("This change affects the following bundles:");
 
 		var workTree = git.getRepository().getWorkTree();
 		for (var path : revision.files().keySet()) {
@@ -222,8 +223,8 @@ public class BumpBundleVersion {
 			}
 		}
 
-		bundles.stream().forEach(info -> System.out.println("- " + info.name));
-		System.out.println("");
+		bundles.stream().forEach(info -> LOG.info("- " + info.name));
+		LOG.info("");
 
 		return bundles;
 	}
@@ -267,7 +268,7 @@ public class BumpBundleVersion {
 				"master");
 
 		var version = Version.valueOf(model.getVersion().replace("-SNAPSHOT", ""));
-		System.out.println(String.format("%d.%d", version.getMajor(), version.getMinor()));
+		LOG.info("Eclipse baseline version on branch master is {}.{}", version.getMajor(), version.getMinor());
 		return version;
 	}
 
@@ -302,7 +303,7 @@ public class BumpBundleVersion {
 
 	void fetchBundleVersions(String projectName, Set<BundleInfo> bundleInfos, String branch) throws RestApiException {
 
-		System.out.println("Bundle versions on branch " + branch + ":");
+		LOG.info("Bundle versions on branch " + branch + ":");
 		bundleInfos.forEach(info -> {
 			getBundleManifest(projectName, info, branch).ifPresent(mf -> {
 				var version = getVersion(mf);
@@ -311,11 +312,11 @@ public class BumpBundleVersion {
 				} else {
 					info.baselineVersion = version;
 				}
-				System.out.println(String.format("- %s: %s", info.name, unqualifiedVersion(version)));
+				LOG.info(String.format("- %s: %s", info.name, unqualifiedVersion(version)));
 			});
 		});
 
-		System.out.println("");
+		LOG.info("");
 	}
 
 	String getBaselineBranch(Version version) {
@@ -324,7 +325,7 @@ public class BumpBundleVersion {
 
 	boolean fetchVersionBumps(Set<BundleInfo> infos) {
 
-		System.out.println("The following versions are bumped:");
+		LOG.info("The following versions are bumped:");
 		boolean anyBump = false;
 		for (var info : infos) {
 			var version = info.currentVersion;
@@ -333,29 +334,29 @@ public class BumpBundleVersion {
 						version.getMicro() + 100, version.getQualifier());
 				info.bumpedVersion = Version.valueOf(newVersion);
 				anyBump = true;
-				System.out.println(String.format("- %s: %s -> %s %s", info.name, unqualifiedVersion(version),
+				LOG.info(String.format("- %s: %s -> %s %s", info.name, unqualifiedVersion(version),
 						unqualifiedVersion(info.bumpedVersion), info.pomPath == null ? "(POM-less)" : ""));
 			}
 		}
 		if (!anyBump) {
-			System.out.println("NONE");
+			LOG.info("NONE");
 		}
 
-		System.out.println("");
+		LOG.info("");
 		return anyBump;
 	}
 
 	void createChange(Git git, ChangeApi change, Set<BundleInfo> infos, Version eclipseVersion) throws Exception {
-		System.out.println("Creating change");
+		LOG.info("Creating change");
 
 		var branchName = String.format("change/%s/%d.%d-versionbump", change.id(), eclipseVersion.getMajor(),
 				eclipseVersion.getMinor());
-		System.out.println("Creating target branch " + branchName);
+		LOG.info("Creating target branch " + branchName);
 		git.branchCreate().setForce(true).setName(branchName).call();
 		git.checkout().setName(branchName).call();
 
 		var branch = git.getRepository().getBranch();
-		System.out.println("On branch " + branch);
+		LOG.info("On branch " + branch);
 
 		infos.stream().filter(info -> info.bumpedVersion != null).forEach(info -> {
 			try {
@@ -397,7 +398,7 @@ public class BumpBundleVersion {
 		content = content.replaceFirst("Bundle-Version: .*", "Bundle-Version: " + info.bumpedVersion);
 		Files.writeString(manifestFile.toPath(), content, StandardCharsets.UTF_8);
 		git.add().addFilepattern(info.manifestPath.toString()).call();
-		System.out.println("Bumped version in " + manifestFile.toPath());
+		LOG.info("Bumped version in " + manifestFile.toPath());
 	}
 
 	private void bumpPOM(Git git, BundleInfo info) throws Exception {
@@ -423,7 +424,7 @@ public class BumpBundleVersion {
 
 		Files.writeString(pomFile.toPath(), modified, StandardCharsets.UTF_8);
 		git.add().addFilepattern(info.pomPath.toString()).call();
-		System.out.println("Bumped version in " + pomFile.toPath());
+		LOG.info("Bumped version in " + pomFile.toPath());
 	}
 
 	Optional<String> pushChange(Git git, ChangeApi change) throws Exception {
@@ -432,13 +433,13 @@ public class BumpBundleVersion {
 		ObjectId head = repository.resolve(Constants.HEAD);
 		RevCommit commit = rw.parseCommit(head);
 
-		System.out.println("The following commit is about to be pushed:");
-		System.out.println("------------------------------------------------------------------------------");
-		System.out.println(String.format("Author: %s <%s>", commit.getAuthorIdent().getName(),
+		LOG.info("The following commit is about to be pushed:");
+		LOG.info("------------------------------------------------------------------------------");
+		LOG.info(String.format("Author: %s <%s>", commit.getAuthorIdent().getName(),
 				commit.getAuthorIdent().getEmailAddress()));
-		System.out.println("------------------------------------------------------------------------------");
-		System.out.println(commit.getFullMessage());
-		System.out.println("------------------------------------------------------------------------------");
+		LOG.info("------------------------------------------------------------------------------");
+		LOG.info(commit.getFullMessage());
+		LOG.info("------------------------------------------------------------------------------");
 		// commit.getId()
 
 		RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
@@ -451,18 +452,18 @@ public class BumpBundleVersion {
 		List<DiffEntry> diffs = df.scan(parent.getTree(), commit.getTree());
 
 		for (DiffEntry diff : diffs) {
-			System.out.println(String.format("(%s %s %s", diff.getChangeType().name(), diff.getNewMode().getBits(),
+			LOG.info(String.format("(%s %s %s", diff.getChangeType().name(), diff.getNewMode().getBits(),
 					diff.getNewPath()));
 		}
-		System.out.println("------------------------------------------------------------------------------");
+		LOG.info("------------------------------------------------------------------------------");
 
 		boolean confirm = assumeYes;
 		if (!confirm) {
 			if (console == null) {
-				System.err.println(
+				LOG.error(
 						"No system console available. Changes are not pushed. Use -y/--assume-yes=true to perform the push in non-interactive mode.");
 			} else {
-				System.out.println("Do you want to push the change (y|N)?");
+				LOG.info("Do you want to push the change (y|N)?");
 				confirm = "y".equalsIgnoreCase(console.readLine());
 			}
 		}
@@ -473,7 +474,7 @@ public class BumpBundleVersion {
 			for (var result : pushResult) {
 				var path = result.getURI().getPath();
 				String changeId = path.substring(path.lastIndexOf('/') + 1);
-				System.out.println("Created change#" + changeId);
+				LOG.info("Created change#" + changeId);
 				return Optional.of(changeId);
 			}
 		}

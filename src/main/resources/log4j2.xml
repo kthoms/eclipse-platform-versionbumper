@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%msg%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console" />
+        </Root>
+        <Logger name="org.eclipse.jgit" level="error" >
+            <AppenderRef ref="Console" />
+        </Logger>
+        <Logger name="org.eclipse.platform.tools" level="info" >
+            <AppenderRef ref="Console" />
+        </Logger>
+    </Loggers>
+</Configuration>
