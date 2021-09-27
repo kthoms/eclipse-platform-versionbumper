@@ -182,4 +182,12 @@
 			</plugin>
 		</plugins>
 	</build>
+	<!-- https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven#publishing-packages-to-github-packages -->
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/kthoms/eclipse-platform-versionbumper</url>
+		</repository>
+	</distributionManagement>
 </project>
