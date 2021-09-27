@@ -9,11 +9,11 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BumpBundleVersionTest {
+class EclipsePlatformVersionBumperTest {
 	
 	@InjectMocks
 	@Spy
-	BumpBundleVersion instance;
+	EclipsePlatformVersionBumper instance;
 
 	@Test
 	void test() {

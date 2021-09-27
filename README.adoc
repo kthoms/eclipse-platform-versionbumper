@@ -1,0 +1,87 @@
+# eclipse-platform-versionbumper
+
+:FINALNAME: eclipse-platform-versionbumper-0.1-SNAPSHOT
+
+A tool to provide version bump changes to Eclipse Gerrit for Eclipse Platform changes.
+
+[![](https://github.com/kthoms/eclipse-platform-versionbumper/workflows/maven.yml/badge.svg)](https://github.com/kthoms/eclipse-platform-versionbumper/workflows/actions)
+
+
+## Context
+
+The Eclipse Platform Project follows a strict semantic versioning concept for all bundles contributed to its core projects.
+
+With each simultaneous release the Eclipse Platform sets a new baseline based on its last release. 
+Whenever a change is build it is first checked if affected bundles have the same version as the baseline bundle.
+When this is the case, the Platform Bot sets `Verified -1` on the build and make it fail.
+
+image::doc/images/GerritWithFailedBuild.png[]
+
+Then a developer needs to look up the build log on Jenkins and sees at the end of the console log an entry from the plugin `org.eclipse.tycho.extras:tycho-p2-extras-plugin` for the `compare-version-with-baselines`goal:
+
+image::doc/images/BuildLog.png[]
+
+This indicates that a bundle needs a version bump for the bundle that it changes.
+
+Sometimes changes contain the required version updates. 
+However, it is preferred to deliver the version bump via a separate change and rebase the change upon the version bump change.
+
+This is a quite tedious work for platform developers as it requires for each change to
+
+- check if it is required to bump a bundle version for a change
+- create a Gerrit change for the bundle version bump
+- rebase the change upon the version bump change
+
+Also, when a change touches multiple bundles it might occur that after the first version bump the build is failing again when the same is detected for the next bundle.
+
+Over all, an Eclipse Platform developer looses a lot of time performing these version bumps.
+
+## About this tool
+
+This small tool aims to facilitate the version bumping for selected changes. For a given change (or multiple at once) it detects that a version bump is required.
+
+The tool detects the project and repository a Gerrit change is for. The repository is cloned and the change checked out.
+
+Based on the change the current Eclipse baseline version is determined. 
+For this the tool reads the Eclipse parent POM `eclipse-platform-parent/pom.xml` from the `platform/eclipse.platform.releng.aggregator` repository.
+
+Based on this information the latest maintenance branch name can be derived. 
+When the Eclipse version on `master` is, for example, 4.22 then the maintenance branch from the previous version is `R4_21_maintenance`.
+
+The maintenance branch is used to determine a bundle's version from the previous release. 
+Based on this it can be detected if the version on the `master` branch is different (i.e. it is _bumped_) or not.
+
+## How to use the tool
+
+The tool is Java based and requires a Java runtime of version 11 or higher. It provides a command-line interface (CLI).
+
+The tool is distributed as a single executable Jar file. Download `{FINALNAME}-jar-with-dependencies.jar` and execute it with
+
+`java -jar {FINALNAME}-jar-with-dependencies.jar`
+
+Without specifying further options this prints the tool's usage:
+
+[subs="attributes"]
+----
+Usage: java -jar {FINALNAME}-jar-with-dependencies.jar [-hy] [--dryrun] -p=<password>
+       -u=<user> [-c=<changeIds>]...
+
+Create version bump changes for Eclipse Platform changes provided on the
+Eclipse Gerrit server.
+
+  -c, --changes=<changeIds>
+                      List of Gerrit change ids to process
+      --dryrun
+  -h, --help          Display this help and exit
+  -p, --password=<password>
+                      Eclipse Gerrit Password
+  -u, --user=<user>   Eclipse Gerrit User Id
+  -y, --assume-yes    Assume 'yes' when asked for confirmation, e.g. to push
+                        changes. Use this option for batch mode.
+----
+
+The options `-u`/`--user` and `-p`/`--password` are required to run the tool. 
+The provided credentials are for your Gerrit user.
+
+The `-c`/`--changes` option specifies the Gerrit change id(s) which are evaluated for a version bump.
+When omitted the tool will ask for them.

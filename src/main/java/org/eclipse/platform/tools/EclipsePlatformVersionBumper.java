@@ -51,9 +51,9 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.PicocliException;
 
-@Command(name = "org.eclipse.platform.tools.BumpBundleVersion", footer = "\nCopyright(c) 2021 Karsten Thoms",
-description = "Create version bump changes for Eclipse Platform changes provided on the Eclipse Gerrit server.\n")
-public class BumpBundleVersion {
+@Command(name = Info.COMMANDNAME, footer = "\n" + Info.COPYRIGHT,
+description = "\nCreate version bump changes for Eclipse Platform changes provided on the Eclipse Gerrit server.\n")
+public class EclipsePlatformVersionBumper {
 	private static final Logger LOG = LoggerFactory.getLogger("main");
 	private GerritApi gerritApi;
 
@@ -73,7 +73,7 @@ public class BumpBundleVersion {
 	private String gitRoot = System.getProperty("user.home") + "/git";
 	private CredentialsProvider credentialsProvider;
 	private Console console;
-	@Option(names = "--dryrun", defaultValue = "true")
+	@Option(names = "--dryrun", defaultValue = "true", description="Use this option to commit changes locally only without publishing it to Gerrit.")
 	boolean dryrun;
 
 	static class BundleInfo {
@@ -94,7 +94,7 @@ public class BumpBundleVersion {
 	}
 
 	public static void main(String[] args) throws Exception {
-		BumpBundleVersion instance = new BumpBundleVersion();
+		EclipsePlatformVersionBumper instance = new EclipsePlatformVersionBumper();
 		try {
 			var commandLine = new CommandLine(instance);
 			var parseResult = commandLine.parseArgs(args);

@@ -8,6 +8,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- property current.year is set by build-helper-maven-plugin -->
+		<copyright>Copyright(c) ${current.year} Karsten Thoms</copyright>
 	</properties>
 
 	<dependencyManagement>
@@ -68,7 +70,7 @@
 			<artifactId>log4j-slf4j-impl</artifactId>
 			<version>2.7</version>
 		</dependency>
-		
+
 		<!-- TEST DEPENDENCIES -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -109,12 +111,71 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<mainClass>org.eclipse.platform.tools.BumpBundleVersion</mainClass>
+									<mainClass>org.eclipse.platform.tools.EclipsePlatformVersionBumper</mainClass>
 								</manifest>
 							</archive>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>timestamp-property</id>
+						<goals>
+							<goal>timestamp-property</goal>
+						</goals>
+						<phase>validate</phase>
+						<configuration>
+							<name>current.year</name>
+							<pattern>yyyy</pattern>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>replacer</artifactId>
+				<version>1.5.2</version>
+				<executions>
+					<!-- Update Info.java with build time properties -->
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>README.adoc</include>
+								<include>src/main/java/org/eclipse/platform/tools/Info.java</include>
+							</includes>
+
+							<replacements>
+								<!-- README.adoc -->
+								<replacement>
+									<token>:FINALNAME: .*</token>
+									<value>:FINALNAME: ${project.build.finalName}</value>
+								</replacement>
+								<!-- Info.java -->
+								<replacement>
+									<token>POMVERSION = ".*"</token>
+									<value>POMVERSION = "${project.version}"</value>
+								</replacement>
+								<replacement>
+									<token>FINALNAME = ".*"</token>
+									<value>FINALNAME = "${project.build.finalName}"</value>
+								</replacement>
+								<replacement>
+									<token>COPYRIGHT = ".*"</token>
+									<value>COPYRIGHT = "${copyright}"</value>
+								</replacement>
+							</replacements>
 						</configuration>
 					</execution>
 				</executions>
