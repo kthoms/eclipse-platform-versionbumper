@@ -47,9 +47,12 @@ import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.PicocliException;
 
+@Command(name = "org.eclipse.platform.tools.BumpBundleVersion", footer = "\nCopyright(c) 2021 Karsten Thoms",
+description = "Create version bump changes for Eclipse Platform changes provided on the Eclipse Gerrit server.\n")
 public class BumpBundleVersion {
 	private static final Logger LOG = LoggerFactory.getLogger("main");
 	private GerritApi gerritApi;
@@ -64,6 +67,8 @@ public class BumpBundleVersion {
 	@Option(names = { "-y",
 			"--assume-yes" }, description = "Assume 'yes' when asked for confirmation, e.g. to push changes. Use this option for batch mode.")
 	private boolean assumeYes;
+	@Option(names = { "--help", "-h" }, usageHelp = true, description = "Display this help and exit")
+	boolean help;
 	private String serverUri = "https://git.eclipse.org/r";
 	private String gitRoot = System.getProperty("user.home") + "/git";
 	private CredentialsProvider credentialsProvider;
@@ -91,8 +96,12 @@ public class BumpBundleVersion {
 	public static void main(String[] args) throws Exception {
 		BumpBundleVersion instance = new BumpBundleVersion();
 		try {
-			new CommandLine(instance).parseArgs(args);
-			instance.run();
+			var commandLine = new CommandLine(instance);
+			var parseResult = commandLine.parseArgs(args);
+			boolean helpPrinted = CommandLine.printHelpIfRequested(parseResult);
+			if (!helpPrinted) {
+				instance.run();
+			}
 		} catch (PicocliException ex) {
 			LOG.error(ex.getMessage());
 		}
