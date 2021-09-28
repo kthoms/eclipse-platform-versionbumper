@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.kthoms.tools</groupId>
 	<artifactId>eclipse-platform-versionbumper</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -180,6 +180,13 @@
 					</execution>
 				</executions>
 			</plugin>
+			 <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>3.0.0-M4</version>
+        <configuration>
+            <scmCommentPrefix>[releng]</scmCommentPrefix>
+        </configuration>
+    </plugin>
 		</plugins>
 	</build>
 	<!-- https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven#publishing-packages-to-github-packages -->
@@ -190,4 +197,11 @@
 			<url>https://maven.pkg.github.com/kthoms/eclipse-platform-versionbumper</url>
 		</repository>
 	</distributionManagement>
+	<!-- https://github.com/qcastel/github-actions-maven-release -->
+	<scm>
+		<connection>scm:git:${project.scm.url}</connection>
+		<developerConnection>scm:git:${project.scm.url}</developerConnection>
+		<url>https://github.com/kthoms/eclipse-platform-versionbumper.git</url>
+		<tag>HEAD</tag>
+	</scm>
 </project>
