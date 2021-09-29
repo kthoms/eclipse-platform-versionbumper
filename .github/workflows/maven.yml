@@ -35,6 +35,6 @@ jobs:
 
       - name: Publish JAR
         if: startsWith(github.ref, 'refs/tags/v')
-        run: git switch -c release-temp && git commit -a -m '[releng] auto-update' && ./mvnw -B release:prepare release:perform
+        run: git switch -c release-temp && git commit -a -m '[releng] auto-update' && ./mvnw -B release:prepare release:perform && git switch main && git merge release-temp && git push origin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
