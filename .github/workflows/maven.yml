@@ -29,7 +29,7 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Build with Maven
-        run: mvn --batch-mode --update-snapshots verify
+        run: git remote && mvn --batch-mode --update-snapshots verify
 
       - name: Perform release build
         if: startsWith(github.ref, 'refs/tags/v')
