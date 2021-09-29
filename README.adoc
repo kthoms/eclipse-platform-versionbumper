@@ -1,6 +1,6 @@
 # eclipse-platform-versionbumper
 
-:FINALNAME: eclipse-platform-versionbumper-0.1-SNAPSHOT
+:FINALNAME: eclipse-platform-versionbumper-0.2.1-SNAPSHOT
 
 A tool to provide version bump changes to Eclipse Gerrit for Eclipse Platform changes.
 
