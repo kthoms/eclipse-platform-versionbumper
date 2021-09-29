@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.kthoms.tools</groupId>
 	<artifactId>eclipse-platform-versionbumper</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.1.1</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -200,6 +200,6 @@
 		<connection>scm:git:${project.scm.url}</connection>
 		<developerConnection>scm:git:${project.scm.url}</developerConnection>
 		<url>https://github.com/kthoms/eclipse-platform-versionbumper.git</url>
-		<tag>HEAD</tag>
+		<tag>eclipse-platform-versionbumper-0.1.1</tag>
 	</scm>
 </project>
