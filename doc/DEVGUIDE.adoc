@@ -9,3 +9,6 @@ This build uses the Maven Wrapper. To install run
 # Release
 
 See https://blog.frankel.ch/github-actions-maven-releases/
+
+Get GitHub Release as env var:
+https://stackoverflow.com/a/58195087
