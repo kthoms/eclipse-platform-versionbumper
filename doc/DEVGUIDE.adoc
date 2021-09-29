@@ -1,0 +1,11 @@
+# Build
+
+## Maven Wrapper
+
+This build uses the Maven Wrapper. To install run
+
+```mvn -N io.takari:maven:wrapper```
+
+# Release
+
+See https://blog.frankel.ch/github-actions-maven-releases/
