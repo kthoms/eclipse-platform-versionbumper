@@ -38,7 +38,7 @@ jobs:
           RELEASE_VERSION=${GITHUB_REF#refs/*/}
           echo $GITHUB_REF
           echo "***** $RELEASE_VERSION"
-          ./mvnw -B versions:set -DnewVersion=$RELEASE_VERSION
+          ./mvnw -B versions:set -DnewVersion=$RELEASE_VERSION-SNAPSHOT
           git branch -r -l
           git switch -c release-temp
           git add -A
