@@ -31,6 +31,10 @@ jobs:
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots verify
 
+      - name: Check in sources changed by build
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: git commit -a -m '[releng] auto-update'
+
       - run: mkdir staging && cp target/*.jar staging
 
       - name: Publish JAR
