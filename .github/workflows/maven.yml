@@ -32,7 +32,12 @@ jobs:
         run: git remote && mvn --batch-mode --update-snapshots verify
 
       - name: Perform release build
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: git switch -c release-temp --track origin/main && git commit -a -m '[releng] auto-update' && ./mvnw -B release:prepare release:perform && git push origin
+        run: |
+          git branch -r -l
+          git switch -c release-temp --track origin/main
+          git commit -a -m '[releng] auto-update' 
+          ./mvnw -B release:prepare release:perform 
+          git push origin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
