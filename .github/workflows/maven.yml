@@ -29,13 +29,17 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Build with Maven
-        run: git remote && mvn --batch-mode --update-snapshots verify
+        run: ./mvnw  --batch-mode --update-snapshots verify
 
       - name: Perform release build
         run: |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo $RELEASE_VERSION
+          ./mvnw  versions:set -DnewVersion=$RELEASE_VERSION
           git branch -r -l
           git switch -c release-temp --track origin/main
-          git commit -a -m --allow-empty '[releng] auto-update' 
+          git add -A
+          git diff-index --quiet HEAD || git commit -m '[releng] auto-update'
           ./mvnw -B release:prepare release:perform 
           git push origin
         env:
