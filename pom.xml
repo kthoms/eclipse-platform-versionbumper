@@ -125,6 +125,29 @@
 		</pluginManagement>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>enforce-versions</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>3.8.0</version>
+								</requireMavenVersion>
+								<requireJavaVersion>
+									<version>11</version>
+								</requireJavaVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
@@ -152,7 +175,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
+				<version>3.0.0</version>
 				<configuration>
 					<mainClass>${app.main.class}</mainClass>
 				</configuration>
@@ -160,7 +183,7 @@
 			<plugin>
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
 				<artifactId>replacer</artifactId>
-				<version>1.5.2</version>
+				<version>1.5.3</version>
 				<executions>
 					<!-- Update Info.java with build time properties -->
 					<execution>
@@ -192,6 +215,10 @@
 								<replacement>
 									<token>COPYRIGHT = ".*"</token>
 									<value>COPYRIGHT = "${copyright}"</value>
+								</replacement>
+								<replacement>
+									<token>:project-version: .*</token>
+									<value>:project-version: ${project.version}</value>
 								</replacement>
 							</replacements>
 						</configuration>
