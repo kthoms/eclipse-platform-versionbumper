@@ -1,0 +1,21 @@
+project:
+  name: eclipse-platform-versionbumper
+  description: A tool to create Gerrit changes for the Eclipse Platform Project with version bumps for submitted Gerrit changes
+  website: https://github.com/kthoms/eclipse-platform-versionbumper
+  authors:
+    - Karsten Thoms
+  license: EPL-2.0
+  java:
+    groupId: com.acme
+    version: 11
+  extraProperties:
+    inceptionYear: 2021
+
+release:
+  github:
+    owner: kthoms
+
+distributions:
+  app:
+    artifacts:
+      - path: path/to/{{distributionName}}-{{projectVersion}}.zip

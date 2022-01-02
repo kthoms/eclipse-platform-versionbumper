@@ -42,6 +42,6 @@ jobs:
           git add -A
           git diff-index --quiet HEAD || git commit -m '[releng] auto-update'
           ./mvnw -B -DtagNameFormat="v@{project.version}" release:prepare release:perform
-          //git tag -f -a v$RELEASE_VERSION
-          //git push --delete origin $RELEASE_VERSION
-          //git push -f --tags
+          #git tag -f -a v$RELEASE_VERSION
+          #git push --delete origin $RELEASE_VERSION
+          #git push -f --tags

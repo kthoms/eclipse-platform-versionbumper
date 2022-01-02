@@ -51,8 +51,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.PicocliException;
 
-@Command(name = Info.COMMANDNAME, footer = "\n" + Info.COPYRIGHT,
-description = "\nCreate version bump changes for Eclipse Platform changes provided on the Eclipse Gerrit server.\n")
+@Command(name = Info.COMMANDNAME, footer = "\n"
+		+ Info.COPYRIGHT, description = "\nCreate version bump changes for Eclipse Platform changes provided on the Eclipse Gerrit server.\n")
 public class EclipsePlatformVersionBumper {
 	private static final Logger LOG = LoggerFactory.getLogger("main");
 	private GerritApi gerritApi;
@@ -73,7 +73,7 @@ public class EclipsePlatformVersionBumper {
 	private String gitRoot = System.getProperty("user.home") + "/git";
 	private CredentialsProvider credentialsProvider;
 	private Console console;
-	@Option(names = "--dryrun", defaultValue = "true", description="Use this option to commit changes locally only without publishing it to Gerrit.")
+	@Option(names = "--dryrun", defaultValue = "true", description = "Use this option to commit changes locally only without publishing it to Gerrit.")
 	boolean dryrun;
 
 	static class BundleInfo {
@@ -113,8 +113,7 @@ public class EclipsePlatformVersionBumper {
 					&& Objects.equals(manifestPath, other.manifestPath) && Objects.equals(name, other.name)
 					&& Objects.equals(pomPath, other.pomPath) && Objects.equals(projectDir, other.projectDir);
 		}
-		
-		
+
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -227,7 +226,7 @@ public class EclipsePlatformVersionBumper {
 
 	void connect() {
 		LOG.info("Connecting to Eclipse Gerrit");
-		
+
 		GerritRestApiFactory gerritRestApiFactory = new GerritRestApiFactory();
 		GerritAuthData.Basic authData = new GerritAuthData.Basic(serverUri, user, password);
 		gerritApi = gerritRestApiFactory.create(authData);

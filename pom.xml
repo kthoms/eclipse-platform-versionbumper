@@ -2,12 +2,21 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.kthoms.tools</groupId>
 	<artifactId>eclipse-platform-versionbumper</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.3.0-SNAPSHOT</version>
+
+	<name>eclipse-platform-versionbumper</name>
+	<description>A tool to create Gerrit changes for the Eclipse Platform Project with version bumps for submitted Gerrit changes</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>11</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<!-- property current.year is set by build-helper-maven-plugin -->
 		<copyright>Copyright(c) ${project.inceptionYear}-${current.year} Karsten Thoms</copyright>
+		<app.main.class>org.eclipse.platform.tools.EclipsePlatformVersionBumper</app.main.class>
+		<app.distribution.directory>${project.build.directory}/distributions/app</app.distribution.directory>
+		<jreleaser.config.file>jreleaser.yml</jreleaser.config.file>
 	</properties>
 
 	<inceptionYear>2021</inceptionYear>
@@ -22,7 +31,7 @@
 
 	<developers>
 		<developer>
-			<id>kthoms@github.com</id>
+			<id>kthoms</id>
 			<name>Karsten Thoms</name>
 		</developer>
 	</developers>
@@ -73,17 +82,17 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.7</version>
+			<version>2.17.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.7</version>
+			<version>2.17.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>2.7</version>
+			<version>2.17.1</version>
 		</dependency>
 
 		<!-- TEST DEPENDENCIES -->
@@ -123,28 +132,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<archive>
-								<manifest>
-									<mainClass>org.eclipse.platform.tools.EclipsePlatformVersionBumper</mainClass>
-								</manifest>
-							</archive>
-							<descriptorRefs>
-								<descriptorRef>jar-with-dependencies</descriptorRef>
-							</descriptorRefs>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
 				<version>3.2.0</version>
@@ -161,6 +148,14 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<configuration>
+					<mainClass>${app.main.class}</mainClass>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
@@ -203,11 +198,104 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Packaging-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>${app.main.class}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>appassembler-maven-plugin</artifactId>
+				<version>2.1.0</version>
+				<configuration>
+					<assembleDirectory>${project.build.directory}/binary</assembleDirectory>
+					<repositoryLayout>flat</repositoryLayout>
+					<repositoryName>lib</repositoryName>
+					<programs>
+						<program>
+							<mainClass>${app.main.class}</mainClass>
+							<id>app</id>
+						</program>
+					</programs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-distribution</id>
+						<phase>package</phase>
+						<goals>
+							<goal>assemble</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>make-distribution</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<attach>false</attach>
+							<appendAssemblyId>false</appendAssemblyId>
+							<outputDirectory>${app.distribution.directory}</outputDirectory>
+							<workDirectory>${project.build.directory}/assembly/work</workDirectory>
+							<descriptorRefs>
+								<descriptorRef>bin</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Releasing -->
 			<plugin>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>3.0.0-M4</version>
 				<configuration>
 					<scmCommentPrefix>[releng]</scmCommentPrefix>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jreleaser</groupId>
+				<artifactId>jreleaser-maven-plugin</artifactId>
+				<version>0.10.0</version>
+				<configuration>
+					<jreleaser>
+						<project>
+							<java>
+								<mainClass>${app.main.class}</mainClass>
+							</java>
+						</project>
+						<release>
+							<github>
+								<owner>kthoms</owner>
+								<overwrite>true</overwrite>
+							</github>
+						</release>
+						<distributions>
+							<app>
+								<artifacts>
+									<artifact>
+										<path>${app.distribution.directory}/${project.artifactId}-${project.version}.zip</path>
+									</artifact>
+									<artifact>
+										<path>${app.distribution.directory}/${project.artifactId}-${project.version}.tar.gz</path>
+									</artifact>
+								</artifacts>
+							</app>
+						</distributions>
+					</jreleaser>
 				</configuration>
 			</plugin>
 		</plugins>
