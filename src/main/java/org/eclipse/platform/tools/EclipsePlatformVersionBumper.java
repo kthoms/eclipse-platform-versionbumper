@@ -91,6 +91,30 @@ public class EclipsePlatformVersionBumper {
 			this.manifestPath = manifestPath;
 			this.pomPath = pomPath;
 		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(baselineVersion, bumpedVersion, currentVersion, manifestPath, name, pomPath,
+					projectDir);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			BundleInfo other = (BundleInfo) obj;
+			return Objects.equals(baselineVersion, other.baselineVersion)
+					&& Objects.equals(bumpedVersion, other.bumpedVersion)
+					&& Objects.equals(currentVersion, other.currentVersion)
+					&& Objects.equals(manifestPath, other.manifestPath) && Objects.equals(name, other.name)
+					&& Objects.equals(pomPath, other.pomPath) && Objects.equals(projectDir, other.projectDir);
+		}
+		
+		
 	}
 
 	public static void main(String[] args) throws Exception {
