@@ -51,4 +51,4 @@ jobs:
       - name: Run JReleaser
         uses: jreleaser/release-action@v1
         env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
