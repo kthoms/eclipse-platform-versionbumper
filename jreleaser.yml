@@ -18,4 +18,4 @@ release:
 distributions:
   app:
     artifacts:
-      - path: path/to/{{distributionName}}-{{projectVersion}}.zip
+      - path: target/distributions/{{distributionName}}/{{projectName}}-{{projectVersion}}.zip
