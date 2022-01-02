@@ -9,8 +9,10 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- property current.year is set by build-helper-maven-plugin -->
-		<copyright>Copyright(c) ${current.year} Karsten Thoms</copyright>
+		<copyright>Copyright(c) ${project.inceptionYear}-${current.year} Karsten Thoms</copyright>
 	</properties>
+	
+	<inceptionYear>2021</inceptionYear>
 
 	<dependencyManagement>
 		<dependencies>
