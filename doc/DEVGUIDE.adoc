@@ -1,12 +1,24 @@
-# Build
+= Build
 
-## Maven Wrapper
+== Building a distribution
+
+[source]
+----
+./mvnw -Pdist package
+----
+
+== Maven Wrapper
 
 This build uses the Maven Wrapper. To install run
 
-```mvn -N io.takari:maven:wrapper```
+[source]
+----
+./mvnw  -N io.takari:maven:wrapper -Dmaven=3.8.4
+----
 
-# Release
+
+
+= Release
 
 See https://blog.frankel.ch/github-actions-maven-releases/
 
@@ -14,8 +26,18 @@ Get GitHub Release as env var:
 https://stackoverflow.com/a/58195087
 
 
-## Version Management
+== Version Management
 
 Check plugin versions
 
-```./mvnw versions:display-plugin-updates```
+[source]
+----
+./mvnw versions:display-plugin-updates
+----
+
+Update dependencies
+
+[source]
+----
+./mvnw versions:use-next-releases
+----

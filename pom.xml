@@ -15,8 +15,9 @@
 		<!-- property current.year is set by build-helper-maven-plugin -->
 		<copyright>Copyright(c) ${project.inceptionYear}-${current.year} Karsten Thoms</copyright>
 		<app.main.class>org.eclipse.platform.tools.EclipsePlatformVersionBumper</app.main.class>
-		<app.distribution.directory>${project.build.directory}/distributions/app</app.distribution.directory>
+		<app.distribution.directory>${project.build.directory}/distributions</app.distribution.directory>
 		<jreleaser.config.file>jreleaser.yml</jreleaser.config.file>
+		<executable-suffix />
 	</properties>
 
 	<inceptionYear>2021</inceptionYear>
@@ -41,7 +42,7 @@
 			<dependency>
 				<groupId>org.junit</groupId>
 				<artifactId>junit-bom</artifactId>
-				<version>5.8.0</version>
+				<version>5.8.2</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -52,7 +53,7 @@
 		<dependency>
 			<groupId>info.picocli</groupId>
 			<artifactId>picocli</artifactId>
-			<version>4.5.2</version>
+			<version>4.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.urswolfer.gerrit.client.rest</groupId>
@@ -62,22 +63,22 @@
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-utils</artifactId>
-			<version>3.2.1</version>
+			<version>3.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-model</artifactId>
-			<version>3.6.3</version>
+			<version>3.8.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>org.eclipse.osgi</artifactId>
-			<version>3.16.0</version>
+			<version>3.16.100</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>5.9.0.202009080501-r</version>
+			<version>5.10.0.202012080955-r</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -104,13 +105,13 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>3.12.4</version>
+			<version>4.0.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
-			<version>3.12.4</version>
+			<version>4.0.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -225,74 +226,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- Packaging-->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.2.0</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>${app.main.class}</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>appassembler-maven-plugin</artifactId>
-				<version>2.1.0</version>
-				<configuration>
-					<assembleDirectory>${project.build.directory}/binary</assembleDirectory>
-					<repositoryLayout>flat</repositoryLayout>
-					<repositoryName>lib</repositoryName>
-					<programs>
-						<program>
-							<mainClass>${app.main.class}</mainClass>
-							<id>app</id>
-						</program>
-					</programs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-distribution</id>
-						<phase>package</phase>
-						<goals>
-							<goal>assemble</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>make-distribution</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<attach>false</attach>
-							<appendAssemblyId>false</appendAssemblyId>
-							<outputDirectory>${app.distribution.directory}</outputDirectory>
-							<workDirectory>${project.build.directory}/assembly/work</workDirectory>
-							<descriptorRefs>
-								<descriptorRef>bin</descriptorRef>
-							</descriptorRefs>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Releasing -->
-			<plugin>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>3.0.0-M4</version>
-				<configuration>
-					<scmCommentPrefix>[releng]</scmCommentPrefix>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.jreleaser</groupId>
 				<artifactId>jreleaser-maven-plugin</artifactId>
@@ -327,6 +260,81 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>dist</id>
+			<activation>
+				<property>
+					<name>dist</name>
+				</property>
+			</activation>
+			<properties>
+				<skipTests>true</skipTests>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>appassembler-maven-plugin</artifactId>
+						<version>2.1.0</version>
+						<executions>
+							<execution>
+								<id>make-distribution</id>
+								<phase>package</phase>
+								<goals>
+									<goal>assemble</goal>
+								</goals>
+								<configuration>
+									<assembleDirectory>${project.build.directory}/binary</assembleDirectory>
+									<repositoryLayout>flat</repositoryLayout>
+									<repositoryName>lib</repositoryName>
+									<programs>
+										<program>
+											<mainClass>${app.main.class}</mainClass>
+											<id>${project.artifactId}</id>
+										</program>
+									</programs>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>make-distribution</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<attach>false</attach>
+									<appendAssemblyId>false</appendAssemblyId>
+									<descriptors>
+										<descriptor>src/main/assembly/assembly.xml</descriptor>
+									</descriptors>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>dist-windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<executable-suffix>.exe</executable-suffix>
+			</properties>
+		</profile>
+	</profiles>
+
 	<!-- https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven#publishing-packages-to-github-packages -->
 	<distributionManagement>
 		<repository>
