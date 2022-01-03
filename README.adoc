@@ -4,12 +4,12 @@
 :project-repo:    maven
 :project-name:    eclipse-platform-versionbumper
 :project-group:   de.kthoms.tools
-:project-version: 0.3.0-SNAPSHOT"
+:project-version: 0.3.0-SNAPSHOT
 :FINALNAME: eclipse-platform-versionbumper-0.3.0-SNAPSHOT
 
 
 image:https://github.com/{project-owner}/{project-name}/actions/workflows/maven.yml/badge.svg["Build Status", link="https://github.com/{project-owner}/{project-name}/actions"]
-image:https://img.shields.io/maven-central/v/de.kthoms.tools/eclipse-platform-versionbumper.svg[Download, link="https://search.maven.org/#search|ga|1|eclipse-platform-versionbumper"]
+image:https://img.shields.io/maven-central/v/de.kthoms.tools/eclipse-platform-versionbumper.svg[Download, link="https://search.maven.org/artifact/{project-group}/{project-name}/{project-version}/pom"]
 image:https://img.shields.io/badge/license-EPL2.0-blue.svg["Eclipse Public License 2.0", link="https://www.eclipse.org/legal/epl-2.0/"]
 
 

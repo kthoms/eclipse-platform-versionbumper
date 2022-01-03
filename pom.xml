@@ -18,6 +18,8 @@
 		<app.distribution.directory>${project.build.directory}/distributions</app.distribution.directory>
 		<jreleaser.config.file>jreleaser.yml</jreleaser.config.file>
 		<executable-suffix />
+		<sonar.organization>kthoms</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<inceptionYear>2021</inceptionYear>

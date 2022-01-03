@@ -17,6 +17,11 @@ This build uses the Maven Wrapper. To install run
 ----
 
 
+= Quality Assurance
+
+== SonarCloud
+
+https://sonarcloud.io/dashboard?id=kthoms_eclipse-platform-versionbumper
 
 = Release
 
