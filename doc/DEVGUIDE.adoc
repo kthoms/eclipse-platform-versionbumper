@@ -1,3 +1,7 @@
+= Prerequisites
+
+Minimal Java Version: 11
+
 = Build
 
 == Building a distribution

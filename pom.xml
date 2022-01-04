@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.kthoms.tools</groupId>
 	<artifactId>eclipse-platform-versionbumper</artifactId>
-	<version>0.3.0-SNAPSHOT</version>
+	<version>0.2.0-SNAPSHOT</version>
 
 	<name>eclipse-platform-versionbumper</name>
 	<description>A tool to create Gerrit changes for the Eclipse Platform Project with version bumps for submitted Gerrit changes</description>
@@ -84,16 +84,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>2.17.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>2.17.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
 			<version>2.17.1</version>
 		</dependency>
@@ -118,14 +108,6 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>3.3.0</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -228,38 +210,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.jreleaser</groupId>
-				<artifactId>jreleaser-maven-plugin</artifactId>
-				<version>0.10.0</version>
-				<configuration>
-					<jreleaser>
-						<project>
-							<java>
-								<mainClass>${app.main.class}</mainClass>
-							</java>
-						</project>
-						<release>
-							<github>
-								<owner>kthoms</owner>
-								<overwrite>true</overwrite>
-							</github>
-						</release>
-						<distributions>
-							<app>
-								<artifacts>
-									<artifact>
-										<path>${app.distribution.directory}/${project.artifactId}-${project.version}.zip</path>
-									</artifact>
-									<artifact>
-										<path>${app.distribution.directory}/${project.artifactId}-${project.version}.tar.gz</path>
-									</artifact>
-								</artifacts>
-							</app>
-						</distributions>
-					</jreleaser>
-				</configuration>
-			</plugin>
+
 		</plugins>
 	</build>
 
@@ -304,6 +255,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-assembly-plugin</artifactId>
+						<version>3.3.0</version>
 						<executions>
 							<execution>
 								<id>make-distribution</id>
@@ -334,6 +286,53 @@
 			<properties>
 				<executable-suffix>.exe</executable-suffix>
 			</properties>
+		</profile>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jreleaser</groupId>
+						<artifactId>jreleaser-maven-plugin</artifactId>
+						<version>0.10.0</version>
+						<configuration>
+							<jreleaser>
+								<release>
+									<github>
+										<tagName>{{projectVersion}}</tagName>
+										<releaseName>{{projectVersion}}</releaseName>
+										<overwrite>true</overwrite>
+										<changelog>
+											<formatted>ALWAYS</formatted>
+											<format>- {{commitShortHash}} {{commitTitle}}</format>
+											<preset>conventional-commits</preset>
+											<contributors>
+												<format>- {{contributorName}}</format>
+											</contributors>
+											<hide>
+												<categories>Merge</categories>
+												<contributors>GitHub,dependabot</contributors>
+											</hide>
+										</changelog>
+									</github>
+								</release>
+								<distributions>
+									<app>
+										<artifacts>
+											<artifact>
+												<path>${app.distribution.directory}/${project.artifactId}-${project.version}.zip</path>
+											</artifact>
+											<artifact>
+												<path>${app.distribution.directory}/${project.artifactId}-${project.version}.tar.gz</path>
+											</artifact>
+										</artifacts>
+									</app>
+								</distributions>
+							</jreleaser>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 

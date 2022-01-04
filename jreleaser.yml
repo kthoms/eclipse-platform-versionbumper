@@ -6,10 +6,22 @@ project:
     - Karsten Thoms
   license: EPL-2.0
   java:
-    groupId: com.acme
+    groupId: de.kthoms.tools
     version: 11
+    mainClass: org.eclipse.platform.tools.EclipsePlatformVersionBumper
   extraProperties:
     inceptionYear: 2021
+
+# File signing is always active
+signing:
+  active: always
+  armored: true
+  # Do not sign additional files, only distribution artifacts and checksums
+  files: false
+
+checksum:
+  # Do not checksum additional files, only distribution artifacts
+  files: false
 
 release:
   github:
