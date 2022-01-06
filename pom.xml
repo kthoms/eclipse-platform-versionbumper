@@ -15,7 +15,7 @@
 		<!-- property current.year is set by build-helper-maven-plugin -->
 		<copyright>Copyright(c) ${project.inceptionYear}-${current.year} Karsten Thoms</copyright>
 		<app.main.class>org.eclipse.platform.tools.EclipsePlatformVersionBumper</app.main.class>
-		<app.distribution.directory>${project.build.directory}/distributions</app.distribution.directory>
+		<app.distribution.directory>${project.build.directory}/distributions/app</app.distribution.directory>
 		<jreleaser.config.file>jreleaser.yml</jreleaser.config.file>
 		<executable-suffix />
 		<sonar.organization>kthoms</sonar.organization>
