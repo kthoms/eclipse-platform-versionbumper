@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.kthoms.tools</groupId>
 	<artifactId>eclipse-platform-versionbumper</artifactId>
-	<version>0.2-alpha5</version>
+	<version>0.2-alpha10</version>
 
 	<name>eclipse-platform-versionbumper</name>
 	<description>A tool to create Gerrit changes for the Eclipse Platform Project with version bumps for submitted Gerrit changes</description>
