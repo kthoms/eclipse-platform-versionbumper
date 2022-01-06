@@ -269,6 +269,7 @@
 									<descriptors>
 										<descriptor>src/main/assembly/assembly.xml</descriptor>
 									</descriptors>
+									<outputDirectory>${app.distribution.directory}</outputDirectory>
 								</configuration>
 							</execution>
 						</executions>

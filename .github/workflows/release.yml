@@ -43,8 +43,8 @@ jobs:
             NEXT_VERSION=$COMPUTED_NEXT_VERSION
           fi
           ./mvnw -B versions:set versions:commit -DnewVersion=$RELEASE_VERSION
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "GitHub Action"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           git commit -a -m "🏁 Releasing version $RELEASE_VERSION"
           git push origin HEAD:main
           git rev-parse HEAD > HEAD
@@ -120,14 +120,14 @@ jobs:
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
-        run: ./mvnw -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
+        run: ./mvnw -B --file pom.xml -Pdist,release -DartifactsDir=artifacts jreleaser:full-release
           
       - name: 'Set next version'
         env:
           NEXT_VERSION: ${{ steps.version.outputs.NEXT_VERSION }}
         run: |
           ./mvnw -B versions:set versions:commit -DnewVersion=$NEXT_VERSION
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "GitHub Action"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           git commit -a -m "⬆️  Next version $NEXT_VERSION"
           git push origin HEAD:main
