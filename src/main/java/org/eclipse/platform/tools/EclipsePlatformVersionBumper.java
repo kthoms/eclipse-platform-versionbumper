@@ -33,6 +33,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.platform.tools.gerrit.GerritRestApiFactoryExt;
 import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -227,7 +228,7 @@ public class EclipsePlatformVersionBumper {
 	void connect() {
 		LOG.info("Connecting to Eclipse Gerrit");
 
-		GerritRestApiFactory gerritRestApiFactory = new GerritRestApiFactory();
+		GerritRestApiFactory gerritRestApiFactory = new GerritRestApiFactoryExt();
 		GerritAuthData.Basic authData = new GerritAuthData.Basic(serverUri, user, password);
 		gerritApi = gerritRestApiFactory.create(authData);
 
