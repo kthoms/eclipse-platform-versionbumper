@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Console;
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -25,6 +26,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.RawTextComparator;
@@ -64,21 +66,35 @@ public class EclipsePlatformVersionBumper {
   @Option(names = { "-c", "--changes" }, description = "List of Gerrit change ids to process")
   private List<String> changeIds = new ArrayList<>();
   private String email;
+
   @Option(names = { "-u", "--user" }, description = "Eclipse Gerrit User Id", required = true)
   private String user;
+
   @Option(names = { "-p", "--password" }, description = "Eclipse Gerrit Password", required = true)
   private String password;
+
+  enum ChangeStrategy {
+    amend, rebase
+  }
+
+  @Option(names = { "-s", "--strategy" }, description = "Strategy how to provide version bump changes:\n"
+      + "1) amend: Add version bump changes by amending to the Gerrit change\n"
+      + "2) rebase: Create a separate Gerrit change and rebase the existing on upon the version bumping change")
+  ChangeStrategy strategy = ChangeStrategy.amend;
+
   @Option(names = { "-y",
       "--assume-yes" }, description = "Assume 'yes' when asked for confirmation, e.g. to push changes. Use this option for batch mode.")
   private boolean assumeYes;
+
+  @Option(names = "--dryrun", defaultValue = "true", description = "Use this option to commit changes locally only without publishing it to Gerrit.")
+  boolean dryrun;
+
   @Option(names = { "--help", "-h" }, usageHelp = true, description = "Display this help and exit")
   boolean help;
   private String serverUri = "https://git.eclipse.org/r";
   private String gitRoot = System.getProperty("user.home") + "/git";
   private CredentialsProvider credentialsProvider;
   private Console console;
-  @Option(names = "--dryrun", defaultValue = "true", description = "Use this option to commit changes locally only without publishing it to Gerrit.")
-  boolean dryrun;
 
   static class BundleInfo {
     public String name;
@@ -168,10 +184,12 @@ public class EclipsePlatformVersionBumper {
           createChange(git, change, bundleInfos, eclipseVersion);
           var changeId = pushChange(git, change);
 
-          changeId.ifPresent(rebaseOnId -> rebaseChange(change, rebaseOnId));
+          if (strategy == ChangeStrategy.rebase) {
+            changeId.ifPresent(rebaseOnId -> rebaseChange(change, rebaseOnId));
+          }
         }
       }
-      
+
       LOG.info("");
       LOG.info("🏁 DONE");
     } catch (Exception e) {
@@ -186,8 +204,8 @@ public class EclipsePlatformVersionBumper {
   private Git getGit(ChangeApi change) throws Exception {
     File repoDir = getRepoDir(change.info().project);
     try {
-      LOG.info("Repository exists at " + repoDir.getPath());
       Git git = Git.open(repoDir);
+      LOG.info("Repository exists at " + repoDir.getPath());
       Status status = git.status().call();
       if (!status.isClean()) {
         // TODO Add option for auto-reset, or ask user
@@ -369,7 +387,7 @@ public class EclipsePlatformVersionBumper {
             version.getMicro() + 100, version.getQualifier());
         info.bumpedVersion = Version.valueOf(newVersion);
         anyBump = true;
-        LOG.info(String.format("- %s: %s -> %s %s", info.name, unqualifiedVersion(version),
+        LOG.info(String.format("⬆️ %s: %s -> %s %s", info.name, unqualifiedVersion(version),
             unqualifiedVersion(info.bumpedVersion), info.pomPath == null ? "(POM-less)" : ""));
       }
     }
@@ -384,14 +402,17 @@ public class EclipsePlatformVersionBumper {
   void createChange(Git git, ChangeApi change, Set<BundleInfo> infos, Version eclipseVersion) throws Exception {
     LOG.info("Creating change");
 
-    var branchName = String.format("change/%s/%d.%d-versionbump", change.id(), eclipseVersion.getMajor(),
-        eclipseVersion.getMinor());
+    var branchName = getChangeBranchName(change, eclipseVersion);
     LOG.info("Creating target branch " + branchName);
     git.branchCreate().setForce(true).setName(branchName).call();
     git.checkout().setName(branchName).call();
 
     var branch = git.getRepository().getBranch();
     LOG.info("On branch " + branch);
+
+    if (strategy == ChangeStrategy.amend) {
+      applyChanges(git, change);
+    }
 
     infos.stream().filter(info -> info.bumpedVersion != null).forEach(info -> {
       try {
@@ -407,22 +428,63 @@ public class EclipsePlatformVersionBumper {
     git.commit().setMessage(message.toString()).call();
   }
 
+  void applyChanges(Git git, ChangeApi change) {
+    LOG.info("Applying patch");
+    try {
+      BinaryResult patch = change.current().patch();
+      String patchContent = new String(Base64.getDecoder().decode(patch.asString()));
+      try (var is = new ByteArrayInputStream(patchContent.getBytes())) {
+        git.apply().setPatch(is).call();
+        var addCommand = git.add();
+        change.current().files().forEach((path, info) -> {
+          if (!"/COMMIT_MSG".equals(path)) {
+            addCommand.addFilepattern(path);
+          }
+        });
+        addCommand.call();
+      }
+    } catch (RestApiException | IOException | GitAPIException e) {
+      throw new RuntimeException("Could not apply file changes from change " + change.id(), e);
+    }
+  }
+
+  String getChangeBranchName(ChangeApi change, Version eclipseVersion) {
+    switch (strategy) {
+    case amend:
+      return String.format("change/%s", change.id());
+    case rebase:
+      return String.format("change/%s/%d.%d-versionbump", change.id(), eclipseVersion.getMajor(),
+          eclipseVersion.getMinor());
+    default:
+      throw new IllegalStateException(strategy.name());
+    }
+  }
+
   String getCommitMessage(Git git, ChangeApi change, Set<BundleInfo> infos, Version eclipseVersion)
       throws RestApiException {
     StringBuilder message = new StringBuilder();
-    message.append(String.format("%d.%d version bump", eclipseVersion.getMajor(), eclipseVersion.getMinor()));
-    if (infos.size() == 1) {
-      message.append(" for ").append(infos.iterator().next().name);
-    } else {
-      message.append("\n\n").append("Bumped bundles:");
-      infos.stream().filter(info -> info.bumpedVersion != null)
-          .forEach(info -> message.append("\n- ").append(info.name));
-    }
-    message
-        .append(String.format("\n\nRequired for change %s/c/%s/+/%s\n", serverUri, change.info().project, change.id()));
+
     var config = git.getRepository().getConfig();
-    message.append(String.format("\nSigned-off-by: %s <%s>", config.getString("user", null, "name"),
-        config.getString("user", null, "email")));
+    String userName = config.getString("user", null, "name");
+    String email = config.getString("user", null, "email");
+
+    if (strategy == ChangeStrategy.amend) {
+      String changeMessage = change.current().commit(false).message;
+      message.append(changeMessage);
+    }
+    if (strategy == ChangeStrategy.rebase) {
+      message.append(String.format("%d.%d version bump", eclipseVersion.getMajor(), eclipseVersion.getMinor()));
+      if (infos.size() == 1) {
+        message.append(" for ").append(infos.iterator().next().name);
+      } else {
+        message.append("\n\n").append("Bumped bundles:");
+        infos.stream().filter(info -> info.bumpedVersion != null)
+            .forEach(info -> message.append("\n- ").append(info.name));
+      }
+      message.append(
+          String.format("\n\nRequired for change %s/c/%s/+/%s\n", serverUri, change.info().project, change.id()));
+      message.append(String.format("\nSigned-off-by: %s <%s>", userName, email));
+    }
     return message.toString();
   }
 
@@ -501,13 +563,13 @@ public class EclipsePlatformVersionBumper {
         confirm = "y".equalsIgnoreCase(console.readLine());
       }
     }
-    if (confirm) {
+    if (!dryrun && confirm) {
       var pushResult = git.push().setCredentialsProvider(credentialsProvider).setRemote("origin")
           .add("HEAD:refs/for/master").call();
 
       for (var result : pushResult) {
         var changeId = getChangeId(result);
-        changeId.ifPresent(id -> LOG.info("Created change #{}", id));
+        changeId.ifPresent(id -> LOG.info("{} change #{}", strategy==ChangeStrategy.amend ? "Updated" : "Created", id));
         return changeId;
       }
     }
@@ -515,7 +577,8 @@ public class EclipsePlatformVersionBumper {
   }
 
   Optional<String> getChangeId(PushResult result) {
-    // ugly: The PushResult does not directly contain the changeId, but it can be read from the messages
+    // ugly: The PushResult does not directly contain the changeId, but it can be
+    // read from the messages
     Pattern p = Pattern.compile(".*/\\+/(\\d+).*");
     Matcher m = p.matcher(result.getMessages());
     if (m.find()) {
