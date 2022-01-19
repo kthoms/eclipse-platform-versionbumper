@@ -4,8 +4,8 @@
 :project-repo:    maven
 :project-name:    eclipse-platform-versionbumper
 :project-group:   de.kthoms.tools
-:project-version: 0.3.0
-:FINALNAME: eclipse-platform-versionbumper-0.3.0
+:project-version: 0.4.0
+:FINALNAME: eclipse-platform-versionbumper-0.4.0
 
 
 image:https://github.com/{project-owner}/{project-name}/actions/workflows/maven.yml/badge.svg["Build Status", link="https://github.com/{project-owner}/{project-name}/actions"]
